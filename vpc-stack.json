@@ -1,150 +1,148 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-
-	"Description": "Creates a VPC with the CIDR: 10.0.1.0/24 and two Subnets that share the CIDR space equally among the them. Makes one Subnet as Public Subnet",
-
+	"Description": "Creates a VPC with the CIDR: 10.0.1.0/24 and two Subnets that share the CIDR space equally among the them.",
 	"Parameters": {
 		"KeyName": {
-			"Description": "Name of an existing EC2 KeyPair to enable SSH access to the bastion host",
-			"Type": "String",
-			"MinLength": "1",
-			"MaxLength": "64",
-			"AllowedPattern": "[-_ a-zA-Z0-9]*",
-			"ConstraintDescription": "can contain only alphanumeric characters, spaces, dashes and underscores.",
-			"Default": "ec2-madhu"
+			"Description": "The EC2 Key Pair to allow SSH access to the instances",
+			"Type": "AWS::EC2::KeyPair::KeyName",
+			"Default": "ec2-s3-rakesh",
+			"ConstraintDescription": "must be the name of an existing EC2 KeyPair."
 		}
 	},
-
 	"Resources": {
-		"MadhuVPC": {
+		"VPC": {
 			"Type": "AWS::EC2::VPC",
 			"Properties": {
 				"CidrBlock": "10.0.1.0/24",
-				"Tags": [{
-					"Key": "Application",
-					"Value": {
-						"Ref": "AWS::StackId"
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackId"
+						}
 					}
-				}]
+				]
 			}
 		},
-
-		"Subnet1": {
+		"Subnet01": {
 			"Type": "AWS::EC2::Subnet",
 			"Properties": {
 				"VpcId": {
-					"Ref": "MadhuVPC"
+					"Ref": "VPC"
 				},
 				"CidrBlock": "10.0.1.0/25",
-				"Tags": [{
-					"Key": "Application",
-					"Value": {
-						"Ref": "AWS::StackId"
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackId"
+						}
 					}
-				}]
+				]
 			}
 		},
-
-		"Subnet2": {
+		"Subnet02": {
 			"Type": "AWS::EC2::Subnet",
 			"Properties": {
 				"VpcId": {
-					"Ref": "MadhuVPC"
+					"Ref": "VPC"
 				},
 				"CidrBlock": "10.0.1.128/25",
-				"Tags": [{
-					"Key": "Application",
-					"Value": {
-						"Ref": "AWS::StackId"
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackId"
+						}
 					}
-				}]
+				]
 			}
 		},
-
-		"MadhuVPCInternetGateway": {
+		"VPCInternetGateway": {
 			"Type": "AWS::EC2::InternetGateway",
 			"Properties": {
-				"Tags": [{
-					"Key": "Application",
-					"Value": {
-						"Ref": "AWS::StackId"
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackId"
+						}
 					}
-				}]
+				]
 			}
 		},
-
-		"MadhuVPCAttachGateway": {
+		"VPCAttachGateway": {
 			"Type": "AWS::EC2::VPCGatewayAttachment",
 			"Properties": {
 				"VpcId": {
-					"Ref": "MadhuVPC"
+					"Ref": "VPC"
 				},
 				"InternetGatewayId": {
-					"Ref": "MadhuVPCInternetGateway"
+					"Ref": "VPCInternetGateway"
 				}
 			}
 		},
-
-		"MadhuVPCRouteTable": {
+		"VPCRouteTable": {
 			"Type": "AWS::EC2::RouteTable",
 			"Properties": {
 				"VpcId": {
-					"Ref": "MadhuVPC"
+					"Ref": "VPC"
 				},
-				"Tags": [{
-					"Key": "Application",
-					"Value": {
-						"Ref": "AWS::StackId"
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackId"
+						}
 					}
-				}]
+				]
 			}
 		},
-
-		"MadhuVPCRoute": {
+		"VPCRoute": {
 			"Type": "AWS::EC2::Route",
-			"DependsOn": "MadhuVPCAttachGateway",
+			"DependsOn": "VPCAttachGateway",
 			"Properties": {
 				"RouteTableId": {
-					"Ref": "MadhuVPCRouteTable"
+					"Ref": "VPCRouteTable"
 				},
 				"DestinationCidrBlock": "0.0.0.0/0",
 				"GatewayId": {
-					"Ref": "MadhuVPCInternetGateway"
+					"Ref": "VPCInternetGateway"
 				}
 			}
 		},
-		"MadhuVPCSubnetRouteTableAssociation": {
+		"VPCSubnetRouteTableAssociation": {
 			"Type": "AWS::EC2::SubnetRouteTableAssociation",
 			"Properties": {
 				"SubnetId": {
-					"Ref": "Subnet1"
+					"Ref": "Subnet01"
 				},
 				"RouteTableId": {
-					"Ref": "MadhuVPCRouteTable"
+					"Ref": "VPCRouteTable"
 				}
 			}
 		},
-
-		"MadhuVPCNetworkAcl": {
+		"VPCNetworkAcl": {
 			"Type": "AWS::EC2::NetworkAcl",
 			"Properties": {
 				"VpcId": {
-					"Ref": "MadhuVPC"
+					"Ref": "VPC"
 				},
-				"Tags": [{
-					"Key": "Application",
-					"Value": {
-						"Ref": "AWS::StackId"
+				"Tags": [
+					{
+						"Key": "Application",
+						"Value": {
+							"Ref": "AWS::StackId"
+						}
 					}
-				}]
+				]
 			}
 		},
-
-		"MadhuVPCInboundHTTPNetworkAclEntry": {
+		"VPCInboundHTTPNetworkAclEntry": {
 			"Type": "AWS::EC2::NetworkAclEntry",
 			"Properties": {
 				"NetworkAclId": {
-					"Ref": "MadhuVPCNetworkAcl"
+					"Ref": "VPCNetworkAcl"
 				},
 				"RuleNumber": "100",
 				"Protocol": "6",
@@ -157,12 +155,11 @@
 				}
 			}
 		},
-
-		"MadhuVPCInboundSSHNetworkAclEntry": {
+		"VPCInboundSSHNetworkAclEntry": {
 			"Type": "AWS::EC2::NetworkAclEntry",
 			"Properties": {
 				"NetworkAclId": {
-					"Ref": "MadhuVPCNetworkAcl"
+					"Ref": "VPCNetworkAcl"
 				},
 				"RuleNumber": "101",
 				"Protocol": "6",
@@ -175,11 +172,11 @@
 				}
 			}
 		},
-		"MadhuVPCInboundResponsePortsNetworkAclEntry": {
+		"VPCInboundResponsePortsNetworkAclEntry": {
 			"Type": "AWS::EC2::NetworkAclEntry",
 			"Properties": {
 				"NetworkAclId": {
-					"Ref": "MadhuVPCNetworkAcl"
+					"Ref": "VPCNetworkAcl"
 				},
 				"RuleNumber": "102",
 				"Protocol": "6",
@@ -192,12 +189,11 @@
 				}
 			}
 		},
-
-		"MadhuVPCOutBoundHTTPNetworkAclEntry": {
+		"VPCOutBoundHTTPNetworkAclEntry": {
 			"Type": "AWS::EC2::NetworkAclEntry",
 			"Properties": {
 				"NetworkAclId": {
-					"Ref": "MadhuVPCNetworkAcl"
+					"Ref": "VPCNetworkAcl"
 				},
 				"RuleNumber": "100",
 				"Protocol": "6",
@@ -210,11 +206,11 @@
 				}
 			}
 		},
-		"MadhuVPCOutBoundHTTPSNetworkAclEntry": {
+		"VPCOutBoundHTTPSNetworkAclEntry": {
 			"Type": "AWS::EC2::NetworkAclEntry",
 			"Properties": {
 				"NetworkAclId": {
-					"Ref": "MadhuVPCNetworkAcl"
+					"Ref": "VPCNetworkAcl"
 				},
 				"RuleNumber": "101",
 				"Protocol": "6",
@@ -227,12 +223,11 @@
 				}
 			}
 		},
-
-		"MadhuVPCOutBoundResponsePortsNetworkAclEntry": {
+		"VPCOutBoundResponsePortsNetworkAclEntry": {
 			"Type": "AWS::EC2::NetworkAclEntry",
 			"Properties": {
 				"NetworkAclId": {
-					"Ref": "MadhuVPCNetworkAcl"
+					"Ref": "VPCNetworkAcl"
 				},
 				"RuleNumber": "102",
 				"Protocol": "6",
@@ -245,17 +240,16 @@
 				}
 			}
 		},
-		"MadhuVPCSubnetNetworkAclAssociation": {
+		"VPCSubnetNetworkAclAssociation": {
 			"Type": "AWS::EC2::SubnetNetworkAclAssociation",
 			"Properties": {
 				"SubnetId": {
-					"Ref": "Subnet1"
+					"Ref": "Subnet01"
 				},
 				"NetworkAclId": {
-					"Ref": "MadhuVPCNetworkAcl"
+					"Ref": "VPCNetworkAcl"
 				}
 			}
 		}
-
 	}
 }
